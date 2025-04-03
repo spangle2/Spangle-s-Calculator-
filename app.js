@@ -18,9 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let operation = undefined;
     let resetInput = false;
     let lastResult = null;
-    let awaitingSecondOperand = false;
+    let equationMode = false;
+    let equationInput = '';
     let scientificMode = false;
-    let scientificFunction = null;
     
     // Initialize calculator
     updateDisplay();
@@ -43,28 +43,46 @@ document.addEventListener('DOMContentLoaded', function() {
     // Number button event listeners
     numberButtons.forEach(button => {
         button.addEventListener('click', () => {
-            inputNumber(button.dataset.number);
+            if (equationMode) {
+                appendToEquation(button.dataset.number);
+            } else {
+                inputNumber(button.dataset.number);
+            }
         });
     });
 
     // Operator button event listeners
     operatorButtons.forEach(button => {
         button.addEventListener('click', () => {
-            selectOperation(button.dataset.operator);
+            if (equationMode) {
+                appendToEquation(getOperatorSymbol(button.dataset.operator));
+            } else {
+                selectOperation(button.dataset.operator);
+            }
         });
     });
 
     // Scientific button event listeners
     scientificButtons.forEach(button => {
         button.addEventListener('click', () => {
-            executeScientificOperation(button.dataset.scientific);
+            if (equationMode) {
+                appendScientificToEquation(button.dataset.scientific);
+            } else {
+                executeScientificOperation(button.dataset.scientific);
+            }
         });
     });
 
     // Action button event listeners
     clearButton.addEventListener('click', clear);
     deleteButton.addEventListener('click', deleteNumber);
-    calculateButton.addEventListener('click', calculate);
+    calculateButton.addEventListener('click', () => {
+        if (equationMode) {
+            evaluateEquation();
+        } else {
+            calculate();
+        }
+    });
     toggleSignButton.addEventListener('click', toggleSign);
     scientificToggleButton.addEventListener('click', toggleScientificMode);
 
@@ -231,28 +249,82 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function clear() {
-        currentOperand = '0';
-        previousOperand = '';
-        operation = undefined;
+        if (equationMode) {
+            equationInput = '';
+            currentOperand = '0';
+        } else {
+            currentOperand = '0';
+            previousOperand = '';
+            operation = undefined;
+        }
         resetInput = false;
         
         updateDisplay();
     }
 
     function deleteNumber() {
-        if (currentOperand.length === 1 || currentOperand === '0') {
-            currentOperand = '0';
+        if (equationMode) {
+            equationInput = equationInput.slice(0, -1);
+            if (equationInput === '') {
+                currentOperand = '0';
+            } else {
+                currentOperand = equationInput;
+            }
         } else {
-            currentOperand = currentOperand.slice(0, -1);
+            if (currentOperand.length === 1 || currentOperand === '0') {
+                currentOperand = '0';
+            } else {
+                currentOperand = currentOperand.slice(0, -1);
+            }
         }
         
         updateDisplay();
     }
 
     function toggleSign() {
-        if (currentOperand === '0' || currentOperand === '') return;
-        
-        currentOperand = String(-parseFloat(currentOperand));
+        if (equationMode) {
+            // Add negative sign at appropriate position in equation
+            if (equationInput === '' || equationInput === '0') {
+                equationInput = '-';
+            } else {
+                // Find last number start position
+                const lastOperatorIndex = Math.max(
+                    equationInput.lastIndexOf('+'),
+                    equationInput.lastIndexOf('-'),
+                    equationInput.lastIndexOf('*'),
+                    equationInput.lastIndexOf('/')
+                );
+                
+                if (lastOperatorIndex === -1) {
+                    // No operator, negate the whole expression
+                    if (equationInput.startsWith('-')) {
+                        equationInput = equationInput.substring(1);
+                    } else {
+                        equationInput = '-' + equationInput;
+                    }
+                } else {
+                    // Check if there's a number after the last operator
+                    const afterOperator = equationInput.substring(lastOperatorIndex + 1);
+                    if (afterOperator === '') {
+                        // No number after operator, do nothing
+                        return;
+                    } else if (equationInput.charAt(lastOperatorIndex) === '-') {
+                        // Change minus to plus
+                        equationInput = equationInput.substring(0, lastOperatorIndex) + '+' + afterOperator;
+                    } else if (equationInput.charAt(lastOperatorIndex) === '+') {
+                        // Change plus to minus
+                        equationInput = equationInput.substring(0, lastOperatorIndex) + '-' + afterOperator;
+                    } else {
+                        // For * and /, insert negative for the operand
+                        equationInput = equationInput.substring(0, lastOperatorIndex + 1) + '(-' + afterOperator + ')';
+                    }
+                }
+            }
+            currentOperand = equationInput;
+        } else {
+            if (currentOperand === '0' || currentOperand === '') return;
+            currentOperand = String(-parseFloat(currentOperand));
+        }
         
         updateDisplay();
     }
@@ -269,12 +341,178 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Toggle between standard calculator and equation input mode
+    function toggleEquationMode() {
+        equationMode = !equationMode;
+        
+        if (equationMode) {
+            equationInput = currentOperand !== '0' ? currentOperand : '';
+            previousOperandElement.textContent = 'Equation Mode: Type full expression';
+        } else {
+            currentOperand = equationInput !== '' ? equationInput : '0';
+            previousOperand = '';
+            operation = undefined;
+            previousOperandElement.textContent = '';
+        }
+        
+        updateDisplay();
+    }
+
+    function appendToEquation(value) {
+        equationInput += value;
+        currentOperand = equationInput;
+        updateDisplay();
+    }
+
+    function appendScientificToEquation(type) {
+        switch (type) {
+            case 'sin':
+                equationInput += 'sin(';
+                break;
+            case 'cos':
+                equationInput += 'cos(';
+                break;
+            case 'tan':
+                equationInput += 'tan(';
+                break;
+            case 'sqrt':
+                equationInput += 'sqrt(';
+                break;
+            case 'power':
+                equationInput += '^';
+                break;
+            case 'log':
+                equationInput += 'log(';
+                break;
+            case 'ln':
+                equationInput += 'ln(';
+                break;
+            case 'pi':
+                equationInput += 'π';
+                break;
+            case 'e':
+                equationInput += 'e';
+                break;
+            case 'factorial':
+                equationInput += '!';
+                break;
+            case 'abs':
+                equationInput += 'abs(';
+                break;
+            case 'exp':
+                equationInput += 'E';
+                break;
+        }
+        currentOperand = equationInput;
+        updateDisplay();
+    }
+
+    function evaluateEquation() {
+        try {
+            // Prepare equation for evaluation
+            let equation = equationInput;
+            
+            // Replace mathematical symbols with JavaScript equivalents
+            equation = equation.replace(/×/g, '*')
+                              .replace(/÷/g, '/')
+                              .replace(/π/g, 'Math.PI')
+                              .replace(/e/g, 'Math.E')
+                              .replace(/sin\(/g, 'Math.sin(degToRad(')
+                              .replace(/cos\(/g, 'Math.cos(degToRad(')
+                              .replace(/tan\(/g, 'Math.tan(degToRad(')
+                              .replace(/sqrt\(/g, 'Math.sqrt(')
+                              .replace(/log\(/g, 'Math.log10(')
+                              .replace(/ln\(/g, 'Math.log(')
+                              .replace(/abs\(/g, 'Math.abs(')
+                              .replace(/\^/g, '**');
+            
+            // Handle factorial notation
+            while (equation.includes('!')) {
+                const factIndex = equation.indexOf('!');
+                // Find the number before the factorial
+                let numStart = factIndex - 1;
+                let parenCount = 0;
+                
+                // Handle parentheses
+                if (equation[numStart] === ')') {
+                    parenCount = 1;
+                    numStart--;
+                    
+                    while (numStart >= 0 && parenCount > 0) {
+                        if (equation[numStart] === ')') parenCount++;
+                        if (equation[numStart] === '(') parenCount--;
+                        numStart--;
+                    }
+                } else {
+                    // Find start of the number
+                    while (numStart >= 0 && (
+                        /[0-9.]/.test(equation[numStart]) || 
+                        (numStart === 0 && equation[numStart] === '-') ||
+                        (numStart > 0 && equation[numStart] === '-' && /[+\-*/^(]/.test(equation[numStart-1]))
+                    )) {
+                        numStart--;
+                    }
+                }
+                
+                const numToFactorial = equation.substring(numStart + 1, factIndex);
+                equation = equation.substring(0, numStart + 1) + 
+                           `factorial(${numToFactorial})` + 
+                           equation.substring(factIndex + 1);
+            }
+            
+            // Add closing parentheses where needed
+            const openParens = (equation.match(/\(/g) || []).length;
+            const closeParens = (equation.match(/\)/g) || []).length;
+            if (openParens > closeParens) {
+                equation += ')'.repeat(openParens - closeParens);
+            }
+            
+            // Create a function with all helper methods
+            const evalFunc = new Function(
+                'degToRad', 'factorial',
+                `return ${equation}`
+            );
+            
+            // Execute the calculation with our helper functions
+            const result = evalFunc(
+                (deg) => deg * (Math.PI / 180),
+                (n) => {
+                    if (n < 0 || !Number.isInteger(parseFloat(n))) throw new Error("Invalid factorial");
+                    if (n <= 1) return 1;
+                    let result = 1;
+                    for (let i = 2; i <= n; i++) result *= i;
+                    return result;
+                }
+            );
+            
+            // Check for valid result
+            if (result === undefined || isNaN(result) || !isFinite(result)) {
+                throw new Error("Invalid calculation");
+            }
+            
+            // Animate result
+            animateResult();
+            
+            // Update state
+            equationInput = String(result);
+            currentOperand = equationInput;
+            
+            // Display equation result
+            previousOperandElement.textContent = `${equation.replace(/Math\./g, '').replace(/degToRad/g, '')} =`;
+            
+            updateDisplay();
+        } catch (e) {
+            console.error("Equation evaluation error:", e);
+            displayError();
+        }
+    }
+
     function updateDisplay() {
         // Format the current operand for display
         let displayValue = currentOperand;
         
         // Handle large numbers and decimals
-        if (displayValue !== '') {
+        if (displayValue !== '' && !equationMode) {
             const numberValue = parseFloat(displayValue);
             if (!isNaN(numberValue)) {
                 if (Math.abs(numberValue) > 1e9) {
@@ -287,48 +525,91 @@ document.addEventListener('DOMContentLoaded', function() {
         
         currentOperandElement.textContent = displayValue || '0';
         
-        if (operation != null) {
+        if (!equationMode && operation != null) {
             previousOperandElement.textContent = `${previousOperand} ${operation}`;
-        } else {
+        } else if (!equationMode) {
             previousOperandElement.textContent = '';
         }
     }
 
     function handleKeyboard(e) {
+        // Toggle equation mode with Tab key
+        if (e.key === 'Tab') {
+            e.preventDefault();
+            toggleEquationMode();
+            return;
+        }
+        
         // Numbers
         if (/^\d$/.test(e.key)) {
             e.preventDefault();
-            inputNumber(e.key);
+            if (equationMode) {
+                appendToEquation(e.key);
+            } else {
+                inputNumber(e.key);
+            }
         }
         
         // Decimal point
         if (e.key === '.') {
             e.preventDefault();
-            inputNumber('.');
+            if (equationMode) {
+                appendToEquation('.');
+            } else {
+                inputNumber('.');
+            }
         }
         
-        // Operations
-        if (e.key === '+') {
+        // Basic operators
+        if (e.key === '+' || e.key === '-') {
             e.preventDefault();
-            selectOperation('+');
+            if (equationMode) {
+                appendToEquation(e.key);
+            } else {
+                selectOperation(e.key);
+            }
         }
-        if (e.key === '-') {
-            e.preventDefault();
-            selectOperation('-');
-        }
+        
+        // Multiplication
         if (e.key === '*') {
             e.preventDefault();
-            selectOperation('×');
+            if (equationMode) {
+                appendToEquation('*');
+            } else {
+                selectOperation('×');
+            }
         }
+        
+        // Division
         if (e.key === '/') {
             e.preventDefault();
-            selectOperation('÷');
+            if (equationMode) {
+                appendToEquation('/');
+            } else {
+                selectOperation('÷');
+            }
+        }
+        
+        // Parentheses for equation mode
+        if ((e.key === '(' || e.key === ')') && equationMode) {
+            e.preventDefault();
+            appendToEquation(e.key);
+        }
+        
+        // Power operator
+        if (e.key === '^' && equationMode) {
+            e.preventDefault();
+            appendToEquation('^');
         }
         
         // Calculate
         if (e.key === 'Enter' || e.key === '=') {
             e.preventDefault();
-            calculate();
+            if (equationMode) {
+                evaluateEquation();
+            } else {
+                calculate();
+            }
         }
         
         // Delete
@@ -351,6 +632,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Helper functions
+    function getOperatorSymbol(operator) {
+        switch (operator) {
+            case '×': return '*';
+            case '÷': return '/';
+            default: return operator;
+        }
+    }
+    
     function degToRad(degrees) {
         return degrees * (Math.PI / 180);
     }
@@ -370,6 +659,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         setTimeout(() => {
             currentOperandElement.classList.remove('error-animation');
+            if (equationMode) {
+                equationInput = '';
+            }
             currentOperand = '0';
             updateDisplay();
         }, 1500);

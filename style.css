@@ -7,13 +7,16 @@
 }
 
 :root {
-    --primary-color: #6c5ce7;
-    --secondary-color: #a29bfe;
-    --dark-color: #2d3436;
-    --light-color: #dfe6e9;
-    --accent-color: #00cec9;
-    --button-shadow: rgba(0, 0, 0, 0.2);
-    --display-shadow: rgba(0, 0, 0, 0.1);
+    --primary-color: #3a4750;
+    --secondary-color: #303841;
+    --accent-color: #00adb5;
+    --light-color: #eeeeee;
+    --button-color: #f8f9fa;
+    --button-shadow: rgba(0, 0, 0, 0.1);
+    --display-shadow: rgba(0, 0, 0, 0.05);
+    --text-color: #303841;
+    --operator-color: #00adb5;
+    --special-color: #ff5722;
 }
 
 body {
@@ -21,7 +24,7 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: linear-gradient(135deg, #74b9ff, #6c5ce7);
+    background-color: #f5f5f5;
     overflow: hidden;
 }
 
@@ -32,9 +35,9 @@ body {
 
 .calculator {
     width: 350px;
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     padding: 20px;
     overflow: hidden;
     transform-style: preserve-3d;
@@ -42,9 +45,9 @@ body {
 }
 
 @keyframes float {
-    0% { transform: translateY(0px) rotateX(0deg); }
-    50% { transform: translateY(-10px) rotateX(5deg); }
-    100% { transform: translateY(0px) rotateX(0deg); }
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
 }
 
 .display-container {
@@ -52,25 +55,14 @@ body {
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: inset 0 2px 10px var(--display-shadow);
+    box-shadow: inset 0 2px 5px var(--display-shadow);
     position: relative;
     overflow: hidden;
 }
 
-.display-container::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
-    pointer-events: none;
-}
-
 .previous-operand {
     font-size: 1.2rem;
-    color: rgba(0, 0, 0, 0.6);
+    color: rgba(0, 0, 0, 0.5);
     text-align: right;
     height: 1.5rem;
     overflow: hidden;
@@ -79,7 +71,7 @@ body {
 
 .current-operand {
     font-size: 2.5rem;
-    color: var(--dark-color);
+    color: var(--text-color);
     text-align: right;
     font-weight: 600;
     overflow: hidden;
@@ -95,12 +87,12 @@ body {
 button {
     border: none;
     outline: none;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 15px;
     font-size: 1.2rem;
     cursor: pointer;
     transition: all 0.15s ease;
-    box-shadow: 0 4px 8px var(--button-shadow);
+    box-shadow: 0 2px 5px var(--button-shadow);
     position: relative;
     overflow: hidden;
 }
@@ -112,7 +104,7 @@ button::after {
     left: 50%;
     width: 5px;
     height: 5px;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.5);
     opacity: 0;
     border-radius: 100%;
     transform: scale(1);
@@ -126,59 +118,59 @@ button:active::after {
 }
 
 button:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 4px var(--button-shadow);
+    transform: translateY(1px);
+    box-shadow: 0 1px 2px var(--button-shadow);
 }
 
 .number-btn {
-    background-color: white;
-    color: var(--dark-color);
-    font-weight: 600;
+    background-color: var(--button-color);
+    color: var(--text-color);
+    font-weight: 500;
 }
 
 .number-btn:hover {
-    background-color: #f5f5f5;
+    background-color: #f1f3f5;
 }
 
 .operator-btn {
-    background-color: var(--secondary-color);
+    background-color: var(--operator-color);
     color: white;
-    font-weight: 700;
+    font-weight: 600;
 }
 
 .operator-btn:hover {
-    background-color: var(--primary-color);
+    background-color: #009da5;
 }
 
 .special-btn {
+    background-color: var(--light-color);
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.special-btn:hover {
+    background-color: #e1e1e1;
+}
+
+button[data-action="calculate"] {
     background-color: var(--accent-color);
     color: white;
     font-weight: 600;
 }
 
-.special-btn:hover {
-    background-color: #00b3b0;
-}
-
-button[data-action="calculate"] {
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 700;
-}
-
 button[data-action="calculate"]:hover {
-    background-color: #5d4ce0;
+    background-color: #009da5;
 }
 
 button[data-action="clear"], 
 button[data-action="delete"] {
-    background-color: #ff7675;
+    background-color: var(--special-color);
     color: white;
 }
 
 button[data-action="clear"]:hover, 
 button[data-action="delete"]:hover {
-    background-color: #e74c3c;
+    background-color: #e64a19;
 }
 
 /* Scientific panel styles */
@@ -197,19 +189,19 @@ button[data-action="delete"]:hover {
 }
 
 .scientific-btn {
-    background-color: #fdcb6e;
-    color: var(--dark-color);
-    font-weight: 600;
+    background-color: #f1f3f5;
+    color: var(--text-color);
+    font-weight: 500;
 }
 
 .scientific-btn:hover {
-    background-color: #fbc531;
+    background-color: #e9ecef;
 }
 
 /* Button press animation */
 @keyframes press {
     0% { transform: scale(1); }
-    50% { transform: scale(0.92); }
+    50% { transform: scale(0.95); }
     100% { transform: scale(1); }
 }
 
@@ -220,7 +212,7 @@ button[data-action="delete"]:hover {
 /* Result animation */
 @keyframes result {
     0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.05); opacity: 1; }
+    50% { transform: scale(1.03); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
 
@@ -244,14 +236,15 @@ button[data-action="delete"]:hover {
 
 /* Toggle scientific mode button animation */
 #scientific-toggle.active {
-    background-color: #e17055;
+    background-color: #00adb5;
+    color: white;
 }
 
 /* Ripple effect */
 .ripple {
     position: absolute;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.5);
     transform: scale(0);
     animation: ripple 0.6s linear;
 }
