@@ -1,2 +1,2 @@
-# SimpleCalculator
-I was tired and wanted to code something simple so here you go!
+# Calculator
+Advanced and Scientific calculator made in CSS, JS and HTML. Made by Spangle2
