@@ -1,0 +1,264 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+    user-select: none;
+}
+
+:root {
+    --primary-color: #6c5ce7;
+    --secondary-color: #a29bfe;
+    --dark-color: #2d3436;
+    --light-color: #dfe6e9;
+    --accent-color: #00cec9;
+    --button-shadow: rgba(0, 0, 0, 0.2);
+    --display-shadow: rgba(0, 0, 0, 0.1);
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #74b9ff, #6c5ce7);
+    overflow: hidden;
+}
+
+.calculator-container {
+    perspective: 1000px;
+    padding: 20px;
+}
+
+.calculator {
+    width: 350px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    padding: 20px;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px) rotateX(0deg); }
+    50% { transform: translateY(-10px) rotateX(5deg); }
+    100% { transform: translateY(0px) rotateX(0deg); }
+}
+
+.display-container {
+    background-color: var(--light-color);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 2px 10px var(--display-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+.display-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+    pointer-events: none;
+}
+
+.previous-operand {
+    font-size: 1.2rem;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: right;
+    height: 1.5rem;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.current-operand {
+    font-size: 2.5rem;
+    color: var(--dark-color);
+    text-align: right;
+    font-weight: 600;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+button {
+    border: none;
+    outline: none;
+    border-radius: 12px;
+    padding: 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 4px 8px var(--button-shadow);
+    position: relative;
+    overflow: hidden;
+}
+
+button::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 5px;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.7);
+    opacity: 0;
+    border-radius: 100%;
+    transform: scale(1);
+    transition: all 0.6s ease;
+}
+
+button:active::after {
+    transform: scale(20);
+    opacity: 0;
+    transition: 0s;
+}
+
+button:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 4px var(--button-shadow);
+}
+
+.number-btn {
+    background-color: white;
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+.number-btn:hover {
+    background-color: #f5f5f5;
+}
+
+.operator-btn {
+    background-color: var(--secondary-color);
+    color: white;
+    font-weight: 700;
+}
+
+.operator-btn:hover {
+    background-color: var(--primary-color);
+}
+
+.special-btn {
+    background-color: var(--accent-color);
+    color: white;
+    font-weight: 600;
+}
+
+.special-btn:hover {
+    background-color: #00b3b0;
+}
+
+button[data-action="calculate"] {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 700;
+}
+
+button[data-action="calculate"]:hover {
+    background-color: #5d4ce0;
+}
+
+button[data-action="clear"], 
+button[data-action="delete"] {
+    background-color: #ff7675;
+    color: white;
+}
+
+button[data-action="clear"]:hover, 
+button[data-action="delete"]:hover {
+    background-color: #e74c3c;
+}
+
+/* Scientific panel styles */
+.scientific-panel {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 15px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s cubic-bezier(0.44, 0.05, 0.33, 1);
+}
+
+.scientific-panel.visible {
+    max-height: 200px;
+}
+
+.scientific-btn {
+    background-color: #fdcb6e;
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+.scientific-btn:hover {
+    background-color: #fbc531;
+}
+
+/* Button press animation */
+@keyframes press {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+
+.btn-pressed {
+    animation: press 0.15s ease forwards;
+}
+
+/* Result animation */
+@keyframes result {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.result-animation {
+    animation: result 0.3s ease forwards;
+}
+
+/* Error animation */
+@keyframes error {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(5px); }
+    50% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+.error-animation {
+    animation: error 0.3s ease forwards;
+    color: #e74c3c !important;
+}
+
+/* Toggle scientific mode button animation */
+#scientific-toggle.active {
+    background-color: #e17055;
+}
+
+/* Ripple effect */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.7);
+    transform: scale(0);
+    animation: ripple 0.6s linear;
+}
+
+@keyframes ripple {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
